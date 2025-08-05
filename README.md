@@ -129,6 +129,59 @@ This test repository includes violations for the following categories of PSScrip
    pre-commit run psscriptanalyzer-format --all-files
    ```
 
+## GitHub Actions Testing
+
+This repository includes comprehensive CI/CD testing via GitHub Actions (`.github/workflows/test-pre-commit.yml`) that validates the pre-commit hooks across:
+
+- **Operating Systems**: Windows, macOS, Linux
+- **Python Versions**: 3.9, 3.10, 3.11, 3.12, 3.13
+- **PowerShell Variants**: PowerShell Core, Windows PowerShell, Homebrew installations
+
+The workflow includes:
+
+- **Matrix testing** across all OS/Python combinations
+- **Hook isolation testing** to test individual hooks separately
+- **PowerShell executable detection testing** to verify cross-platform compatibility
+- **Compatibility reporting** with automated troubleshooting guidance
+
+## Troubleshooting
+
+If you encounter assembly loading errors like:
+
+```text
+System.IO.FileLoadException: The given assembly name was invalid.
+File name: 'System.Runtime.Numerics, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11ﾠ'
+```
+
+This indicates a .NET runtime compatibility issue. Try these solutions:
+
+1. **Update PowerShell**:
+   - macOS: `brew upgrade powershell`
+   - Linux: Follow [PowerShell installation guide](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-linux)
+   - Windows: Update via Microsoft Store or download latest release
+
+2. **Reinstall PSScriptAnalyzer**:
+
+   ```bash
+   pwsh -c 'Uninstall-Module PSScriptAnalyzer -Force; Install-Module PSScriptAnalyzer -Force'
+   ```
+
+3. **Clear PowerShell module cache**:
+
+   ```bash
+   # macOS/Linux
+   rm -rf ~/.local/share/powershell/Modules/PSScriptAnalyzer
+   
+   # Windows
+   Remove-Item -Path "$env:USERPROFILE\.local\share\powershell\Modules\PSScriptAnalyzer" -Recurse -Force
+   ```
+
+4. **Check .NET compatibility**:
+
+   ```bash
+   pwsh -c '[System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription'
+   ```
+
 ## Expected Behavior
 
 When you run PSScriptAnalyzer against these files, you should see:
