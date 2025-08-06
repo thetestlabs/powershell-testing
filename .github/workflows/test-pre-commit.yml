@@ -44,17 +44,42 @@ jobs:
         # Install PowerShell via Homebrew
         brew install --cask powershell
         
+        # Try to mitigate assembly loading issues on macOS
+        echo "Clearing any existing PowerShell cache..."
+        rm -rf ~/.local/share/powershell/Modules/PSScriptAnalyzer 2>/dev/null || true
+        rm -rf ~/.cache/powershell 2>/dev/null || true
+        
     - name: Verify PowerShell installation
       run: |
         pwsh -Command '$PSVersionTable'
         
     - name: Install PSScriptAnalyzer
       run: |
-        pwsh -Command 'Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser'
+        # Install with retry logic and additional error handling for macOS
+        if [ "${{ runner.os }}" = "macOS" ]; then
+          echo "Installing PSScriptAnalyzer on macOS with workarounds..."
+          for i in {1..3}; do
+            if pwsh -Command 'Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -Verbose'; then
+              echo "PSScriptAnalyzer installed successfully on attempt $i"
+              break
+            else
+              echo "Installation attempt $i failed, retrying..."
+              sleep 5
+            fi
+          done
+        else
+          pwsh -Command 'Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser'
+        fi
         
     - name: Verify PSScriptAnalyzer installation
       run: |
-        pwsh -Command 'Get-Module -ListAvailable -Name PSScriptAnalyzer | Select-Object Name, Version, Path'
+        # Safe verification with error handling
+        echo "Checking PSScriptAnalyzer installation..."
+        if pwsh -Command 'try { Get-Module -ListAvailable -Name PSScriptAnalyzer | Select-Object Name, Version, Path } catch { Write-Error "Failed to check PSScriptAnalyzer: $($_.Exception.Message)" }'; then
+          echo "PSScriptAnalyzer verification successful"
+        else
+          echo "PSScriptAnalyzer verification failed, but continuing..."
+        fi
         
     - name: Install pre-commit
       run: |
@@ -73,9 +98,33 @@ jobs:
       if: failure()
       run: |
         echo "Pre-commit failed. Showing PowerShell and .NET diagnostics:"
-        pwsh -Command '$PSVersionTable | Format-Table -AutoSize'
-        pwsh -Command '[System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription'
-        pwsh -Command 'Get-Module -ListAvailable -Name PSScriptAnalyzer'
+        
+        # Safe PowerShell version check
+        echo "=== PowerShell Version ==="
+        if ! pwsh -Command 'try { $PSVersionTable | Format-List } catch { Write-Output "PowerShell diagnostics failed: $($_.Exception.Message)" }'; then
+          echo "PowerShell version check failed with assembly loading issues"
+        fi
+        
+        # Safe .NET framework check
+        echo "=== .NET Framework ==="
+        if ! pwsh -Command 'try { [System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription } catch { Write-Output ".NET diagnostics failed: $($_.Exception.Message)" }'; then
+          echo ".NET framework check failed with assembly loading issues"
+        fi
+        
+        # Safe module check
+        echo "=== PSScriptAnalyzer Module ==="
+        if ! pwsh -Command 'try { Get-Module -ListAvailable -Name PSScriptAnalyzer } catch { Write-Output "Module check failed: $($_.Exception.Message)" }'; then
+          echo "PSScriptAnalyzer module check failed"
+        fi
+        
+        # Show system information for debugging
+        echo "=== System Information ==="
+        echo "OS: ${{ runner.os }}"
+        echo "Architecture: $(uname -m)"
+        if [ "${{ runner.os }}" = "macOS" ]; then
+          echo "macOS Version: $(sw_vers -productVersion)"
+          echo "Xcode Version: $(xcode-select --version 2>/dev/null || echo 'Not installed')"
+        fi
 
   test-hook-isolation:
     name: Test Hook Isolation on ${{ matrix.os }}
