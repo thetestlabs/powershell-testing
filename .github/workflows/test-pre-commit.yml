@@ -54,6 +54,7 @@ jobs:
         pwsh -Command '$PSVersionTable'
         
     - name: Install PSScriptAnalyzer
+      shell: bash
       run: |
         # Install with retry logic and additional error handling for macOS
         if [ "${{ runner.os }}" = "macOS" ]; then
@@ -72,6 +73,7 @@ jobs:
         fi
         
     - name: Verify PSScriptAnalyzer installation
+      shell: bash
       run: |
         # Safe verification with error handling
         echo "Checking PSScriptAnalyzer installation..."
@@ -96,6 +98,7 @@ jobs:
         
     - name: Show pre-commit hook results (if failed)
       if: failure()
+      shell: bash
       run: |
         echo "Pre-commit failed. Showing PowerShell and .NET diagnostics:"
         
@@ -178,6 +181,7 @@ jobs:
     
     steps:
     - name: Generate compatibility report
+      shell: bash
       run: |
         echo "## Pre-commit Hook Compatibility Report" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
