@@ -2,6 +2,7 @@
 # This script intentionally violates various PSScriptAnalyzer rules
 
 # PSUseApprovedVerbs - using non-approved verb
+# PSProvideCommentHelp - missing comment-based help (Information)
 function Download-File {
     param(
         $url,    # PSReviewUnusedParameter - parameter defined but not used
@@ -16,6 +17,13 @@ function Download-File {
     
     # PSAvoidUsingConvertToSecureStringWithPlainText - insecure conversion
     $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+    
+    # PSAvoidUsingDoubleQuotesForConstantString - Information level
+    $simpleString = "Hello"
+    $greeting = "Welcome"
+    
+    # PSUseCorrectCasing - Information level (incorrect cmdlet casing)
+    get-process | where-object Name -eq "notepad"
     
     # PSUseShouldProcessForStateChangingFunctions - missing ShouldProcess
     Remove-Item $path -Force
