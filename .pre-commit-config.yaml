@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/thetestlabs/psscriptanalyzer-pre-commit
-    rev: v1.0.10 # Use the latest version
+    rev: v1.0.11 # Use the latest version
     hooks:
       # Lint PowerShell files (show all severity levels)
       - id: psscriptanalyzer
