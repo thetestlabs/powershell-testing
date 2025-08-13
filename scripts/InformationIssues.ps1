@@ -1,7 +1,8 @@
-# PowerShell script with Information-level PSScriptAnalyzer issues
-# This file is designed to trigger Information-level warnings
+# InformationIssues.ps1
+# This file contains PSScriptAnalyzer rule violations that typically result in Information level messages
+# These are style issues rather than security or functional problems
 
-# PSProvideCommentHelp - Function without comment-based help
+# PSProvideCommentHelp - Function without comment-based help (can be Information level)
 function Get-ServerInfo {
     param(
         [Parameter(Mandatory = $true)]
@@ -15,18 +16,27 @@ function Get-ServerInfo {
     set-location $LogPath
 }
 
-# PSAvoidUsingDoubleQuotesForConstantString - Unnecessary double quotes
+# PSAvoidUsingDoubleQuotesForConstantString - Information
 function Test-StringQuotes {
-    $greeting = "Hello"
-    $name = "World"
-    $message = "Welcome"
-    $status = "Active"
-    
-    # PSAvoidUsingPositionalParameters - Using positional parameters
-    Write-Output $greeting $name
-    Join-Path "C:\Temp" "file.txt"
+    $greeting = "Hello" # Should use single quotes for constant string
+    $name = "World" # Should use single quotes for constant string
+    $message = "Welcome" # Should use single quotes for constant string
+    $status = "Active" # Should use single quotes for constant string
     
     return $message
+}
+
+# PSUseConsistentWhitespace - Information
+function Test-Spacing {
+    # Missing space after function name and opening brace
+    
+    # Inconsistent spaces around operators
+    $result = 1 + 2 - 3 + 4
+    
+    if ($result -gt 0) {
+        # Missing spaces in conditional
+        return$result # Missing space after return keyword
+    }
 }
 
 # PSPossibleIncorrectUsageOfAssignmentOperator - Assignment instead of comparison
@@ -38,7 +48,8 @@ function Test-AssignmentOperator {
         Write-Output "Admin user detected"
     }
     
-    # Another example
+    # Another example with assignment operator
+    $Status = "Stopped"
     if ($Status = "Running") {
         Write-Output "Service is running"
     }
@@ -49,42 +60,73 @@ function Test-TrailingSpaces {
     $data = "sample"    
     $info = "information"   
     $result = "output"     
+}
+
+# PSUseConsistentIndentation - Information
+function Test-Indentation {
+    param(
+        [string]$Name,
+        [int]$Value
+    ) # Inconsistent parameter indentation
     
-    # PSUseCorrectCasing - Mixed case issues
+    if ($Name) {
+        Write-Output $Name # Inconsistent indentation
+    }
+    else {
+        Write-Output "No name"
+    }
+}
+
+# PSUseCorrectCasing - Information level
+function incorrect-casing {
+    # Cmdlet names should use proper Pascal casing
     foreach ($item in get-childitem) {
         write-verbose $item.Name
         start-process $item.FullName
     }
 }
 
-# Function with multiple Information issues
-function Process-Data {
-    # PSAvoidUsingDoubleQuotesForConstantString
-    $folder = "Documents"
-    $extension = "txt"
-    
-    # PSAvoidUsingPositionalParameters and PSUseCorrectCasing
-    get-childitem "C:\Users" "*.log"
-    copy-item "source.txt" "destination.txt"
-    
-    # PSPossibleIncorrectUsageOfAssignmentOperator
-    $files = get-childitem
-    foreach ($file in $files) {
-        if ($file.Extension = ".txt") {
-            write-host "Found text file"
-        }
+# PSUseSingularNouns - Information level
+function Get-Users {
+    # Function name uses plural noun
+    return Get-LocalUser
+}
+
+# PSAlignAssignmentStatement - Information
+function Test-Alignment {
+    $short = "Short value"
+    $veryLongVariableName = "Long value" # These should be aligned
+    $number = 42
+    $anotherLongVariableName = 100 # These should be aligned
+}
+
+# PSPlaceCloseBrace - Information
+function Test-BracePlacement {
+    if ($true) {
+        # Code
     }
+    else {
+        # Else on same line as closing brace
+    }
+}
+
+# PSAvoidSemicolonsAsLineTerminators - Information
+function Test-Semicolons {
+    $var = "value"; # Unnecessary semicolon
+    Get-Process; # Unnecessary semicolon
+    Write-Output $var;
 }
 
 # PSProvideCommentHelp - Another function without help
 function Start-BackgroundTask {
     param([scriptblock]$ScriptBlock)
+    
     Start-Job -ScriptBlock $ScriptBlock
 }
 
 # Lines with trailing whitespace (Information-level issue)
 $global:config = @{
-    Server = "localhost"    
+    Server   = "localhost"    
     Database = "TestDB"   
-    Timeout = 30     
+    Timeout  = 30     
 }

@@ -1,0 +1,44 @@
+name: PowerShell Linting
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  analyze-powershell:
+    name: Analyze PowerShell Files
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install PowerShell
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget apt-transport-https software-properties-common
+        wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+        sudo dpkg -i packages-microsoft-prod.deb
+        sudo apt-get update
+        sudo apt-get install -y powershell
+    
+    - name: Install py-psscriptanalyzer
+      run: |
+        python -m pip install --upgrade pip
+        pip install py-psscriptanalyzer
+    
+    - name: Analyze PowerShell files
+      run: |
+        py-psscriptanalyzer --severity Warning **/*.ps1 **/*.psm1 **/*.psd1
+      
+    - name: Show command for manual testing
+      run: |
+        echo "To run manually: py-psscriptanalyzer --severity Warning path/to/file.ps1"

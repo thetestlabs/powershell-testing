@@ -1,0 +1,59 @@
+name: PowerShell Security Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'  # Run weekly on Mondays
+
+jobs:
+  security-check:
+    name: PowerShell Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install PowerShell
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget apt-transport-https software-properties-common
+        wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+        sudo dpkg -i packages-microsoft-prod.deb
+        sudo apt-get update
+        sudo apt-get install -y powershell
+    
+    - name: Install py-psscriptanalyzer
+      run: |
+        python -m pip install --upgrade pip
+        pip install py-psscriptanalyzer
+    
+    - name: Run security-focused analysis
+      run: |
+        echo "::group::Security Issues (Error Level)"
+        py-psscriptanalyzer --severity Error scripts/SecurityIssues.ps1 || true
+        echo "::endgroup::"
+        
+        echo "::group::Security Rules on All Files"
+        for script in $(find . -name "*.ps1" -o -name "*.psm1"); do
+          echo "Analyzing $script for security issues..."
+          # Use security rules to check the files
+          py-psscriptanalyzer $script --severity Error || true
+          echo "------------------------"
+        done
+        echo "::endgroup::"
+      
+    - name: Output summary
+      run: |
+        echo "## PowerShell Security Analysis Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Security analysis completed. Check the logs for detailed results." >> $GITHUB_STEP_SUMMARY

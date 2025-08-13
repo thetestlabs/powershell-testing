@@ -1,10 +1,16 @@
 repos:
-  - repo: https://github.com/thetestlabs/psscriptanalyzer-pre-commit
-    rev: v1.0.12 # Use the latest version
+  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+    rev: v0.3.0 # Use the latest version
     hooks:
-      # Lint PowerShell files (show all severity levels)
-      - id: psscriptanalyzer
-        args: ["--severity", "All"]
+      - id: py-psscriptanalyzer # Lint PowerShell files
+        args: ["--severity", "Warning"] # Show Warning and Error level issues
+      - id: py-psscriptanalyzer-format # Format PowerShell files
 
-      # Format PowerShell files
-      # - id: psscriptanalyzer-format
+  # Optional: Add other pre-commit hooks as needed
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files

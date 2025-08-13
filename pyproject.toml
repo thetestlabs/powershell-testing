@@ -1,0 +1,9 @@
+[project]
+name = "powershell-testing"
+version = "0.1.0"
+description = "A project for testing PowerShell scripts"
+authors = ["Chris McQuaid <chris@thetestlabs.io>"]
+license = "MIT"
+dependencies = [
+    "py-psscriptanalyzer>=0.3.0",
+]

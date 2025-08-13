@@ -1,6 +1,7 @@
-# Additional edge cases and less common PSScriptAnalyzer rules
+# EdgeCases.ps1
+# This file demonstrates edge cases and less common PSScriptAnalyzer rules
 
-# PSAvoidNullOrEmptyHelpMessageAttribute - empty help messages
+# 1. Empty help messages - PSAvoidNullOrEmptyHelpMessageAttribute
 function Test-EmptyHelp {
     [CmdletBinding()]
     param(
@@ -14,7 +15,7 @@ function Test-EmptyHelp {
     Write-Output $InputValue
 }
 
-# PSAvoidUsingFilePath parameter name violations
+# 2. Parameter naming violations - PSAvoidUsingFilePath
 function Test-FilePathIssues {
     param(
         [string]$file,      # Should be FilePath or Path
@@ -29,37 +30,67 @@ function Test-FilePathIssues {
     Get-Content $filepath
 }
 
-# PSAvoidSemicolonsAsLineTerminators - using semicolons
-function Test-Semicolons {
-    $var1 = "value1"; $var2 = "value2";  # Avoid semicolons as line terminators
-    Write-Output $var1; Write-Output $var2;
+# 3. Long lines that stretch beyond typical line length limits - PSAvoidLongLines
+$veryLongString = "This is an extremely long string that is intentionally created to exceed the default line length limit in many code style guidelines for PowerShell scripts and will definitely trigger the PSAvoidLongLines rule in PSScriptAnalyzer if it's configured to check for lines longer than 100-120 characters, which is a common standard in many coding style guides."
+
+# 4. Nested hashtables with inconsistent formatting
+$complexObject = @{
+    FirstLevel = @{
+        SecondLevel = @{
+            ThirdLevel = @{ 
+                FourthLevel = @{
+                    FifthLevel = "Value"
+                }
+            }
+        }
+    }
 }
 
-# PSAvoidUsingAlias for Export-ModuleMember
-New-Alias -Name "BadAlias" -Value "Get-Process"  # Creating aliases
-
-# PSPlaceOpenBrace - brace placement issues
-function Test-BracePlacement
-{  # Opening brace should be on same line
-    param($Parameter)
+# 5. Mixed parameter naming conventions in the same function
+function Test-MixedConventions {
+    param(
+        [string]$GoodParameterName,
+        [string]$bad_parameter_name,
+        [string]$camelCaseParam,
+        [string]$PascalCaseParam,
+        [string]$s  # Single character param
+    )
     
-    if ($Parameter)
-    {  # Inconsistent brace placement
-        Write-Output "Value: $Parameter"
-    }
-    else {
-        Write-Output "No value"
+    Write-Output $GoodParameterName
+}
+
+# 6. Extremely deep nesting levels - excessive complexity
+function Test-DeepNesting {
+    if ($true) {
+        foreach ($item in 1..10) {
+            if ($item -gt 5) {
+                try {
+                    if ($item -eq 7) {
+                        while ($true) {
+                            if ((Get-Date).Second % 2 -eq 0) {
+                                foreach ($subItem in 1..5) {
+                                    if ($subItem -eq $item) {
+                                        # Deeply nested code
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch {}
+            }
+        }
     }
 }
 
-# PSPlaceCloseBrace - closing brace issues
+# 7. PSPlaceCloseBrace - closing brace issues
 function Test-ClosingBraces {
     if ($true) {
         Write-Output "True"
-        }  # Poor indentation of closing brace
+    }  # Poor indentation of closing brace
 }
 
-# PSUseCompatibleSyntax - using syntax not compatible with older versions
+# 8. PSUseCompatibleSyntax - using syntax not compatible with older versions
 class ModernClass {
     [string] $Property = "default"  # Property initialization (PS 5.0+)
     
@@ -72,7 +103,7 @@ class ModernClass {
     }
 }
 
-# PSAvoidUsingWMICmdlets - comprehensive WMI usage
+# 9. PSAvoidUsingWMICmdlets - comprehensive WMI usage
 function Get-SystemInfo-Bad {
     # All these WMI cmdlets are deprecated
     $os = Get-WmiObject -Class Win32_OperatingSystem
@@ -83,16 +114,7 @@ function Get-SystemInfo-Bad {
     return $os, $computer, $bios
 }
 
-# PSAvoidUsingWildcardForPath - using wildcards in paths unsafely
-function Test-WildcardPaths {
-    param([string]$BasePath)
-    
-    # Unsafe wildcard usage
-    Remove-Item "$BasePath\*" -Force -Recurse  # Could be dangerous
-    Copy-Item "C:\Source\*" "C:\Destination\"  # Wildcard in paths
-}
-
-# PSUseProcessBlockForPipelineCommand - missing process block
+# 10. PSUseProcessBlockForPipelineCommand - missing process block
 function Test-PipelineWithoutProcess {
     [CmdletBinding()]
     param(
@@ -111,7 +133,7 @@ function Test-PipelineWithoutProcess {
     }
 }
 
-# PSReturnCorrectTypesForDSCFunctions - DSC function return types
+# 11. PSReturnCorrectTypesForDSCFunctions - DSC function return types
 function Get-TargetResource {
     [CmdletBinding()]
     param(
@@ -121,6 +143,15 @@ function Get-TargetResource {
     
     # Should return hashtable but returns string
     return "Not a hashtable"
+}
+
+# 12. PSAvoidUsingWildcardForPath - using wildcards in paths unsafely
+function Test-WildcardPaths {
+    param([string]$BasePath)
+    
+    # Unsafe wildcard usage
+    Remove-Item "$BasePath\*" -Force -Recurse  # Could be dangerous
+    Copy-Item "C:\Source\*" "C:\Destination\"  # Wildcard in paths
 }
 
 function Test-TargetResource {
@@ -157,13 +188,15 @@ function Test-MandatoryDefault {
 }
 
 # PSAvoidOverwritingBuiltInCmdlets - overwriting built-in commands
-function Get-Process {  # Overwriting built-in cmdlet
+function Get-Process {
+    # Overwriting built-in cmdlet
     param([string]$Name)
     
     Write-Output "Custom Get-Process: $Name"
 }
 
-function Where-Object {  # Overwriting built-in cmdlet
+function Where-Object {
+    # Overwriting built-in cmdlet
     param($FilterScript)
     
     Write-Output "Custom Where-Object"

@@ -1,0 +1,55 @@
+name: PowerShell SARIF Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 3'  # Run weekly on Wednesdays
+
+jobs:
+  sarif-analysis:
+    name: Generate SARIF Report
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for uploading SARIF results to GitHub
+      security-events: write
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install PowerShell
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget apt-transport-https software-properties-common
+        wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+        sudo dpkg -i packages-microsoft-prod.deb
+        sudo apt-get update
+        sudo apt-get install -y powershell
+    
+    - name: Install py-psscriptanalyzer
+      run: |
+        python -m pip install --upgrade pip
+        pip install py-psscriptanalyzer
+    
+    - name: Generate SARIF report
+      run: |
+        # Run PSScriptAnalyzer with SARIF output
+        find . -name "*.ps1" -o -name "*.psm1" -o -name "*.psd1" > ps_files.txt
+        
+        # Generate SARIF output
+        cat ps_files.txt | xargs py-psscriptanalyzer --severity Information --output sarif --output-file psscriptanalyzer-results.sarif
+      
+    - name: Upload SARIF to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: psscriptanalyzer-results.sarif
+        category: psscriptanalyzer

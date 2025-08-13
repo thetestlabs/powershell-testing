@@ -1,0 +1,99 @@
+name: PowerShell Comprehensive Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1 * *'  # Run monthly
+
+jobs:
+  comprehensive-analysis:
+    name: Comprehensive PowerShell Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install PowerShell
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget apt-transport-https software-properties-common
+        wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+        sudo dpkg -i packages-microsoft-prod.deb
+        sudo apt-get update
+        sudo apt-get install -y powershell
+    
+    - name: Install py-psscriptanalyzer
+      run: |
+        python -m pip install --upgrade pip
+        pip install py-psscriptanalyzer
+    
+    - name: Analyze files by severity levels
+      run: |
+        echo "::group::Error Severity Analysis"
+        py-psscriptanalyzer --severity Error **/*.ps1 **/*.psm1 **/*.psd1 || true
+        echo "::endgroup::"
+        
+        echo "::group::Warning Severity Analysis"
+        py-psscriptanalyzer --severity Warning **/*.ps1 **/*.psm1 **/*.psd1 || true
+        echo "::endgroup::"
+        
+        echo "::group::Information Severity Analysis"
+        py-psscriptanalyzer --severity Information **/*.ps1 **/*.psm1 **/*.psd1 || true
+        echo "::endgroup::"
+    
+    - name: Analyze files by rule categories
+      run: |
+        echo "::group::Security Rules Analysis"
+        echo "This would use security-specific rules from PSScriptAnalyzer"
+        py-psscriptanalyzer scripts/SecurityIssues.ps1 --severity Warning || true
+        echo "::endgroup::"
+        
+        echo "::group::Style Rules Analysis"
+        echo "This would use style-specific rules from PSScriptAnalyzer"
+        py-psscriptanalyzer scripts/InformationIssues.ps1 --severity Information || true
+        echo "::endgroup::"
+        
+        echo "::group::Performance Rules Analysis"
+        echo "This would use performance-specific rules from PSScriptAnalyzer"
+        py-psscriptanalyzer scripts/AdvancedIssues.ps1 --severity Warning || true
+        echo "::endgroup::"
+        
+        echo "::group::Best Practices Rules Analysis"
+        echo "This would use best-practices-specific rules from PSScriptAnalyzer"
+        py-psscriptanalyzer scripts/BadScript.ps1 --severity Warning || true
+        echo "::endgroup::"
+        
+        echo "::group::DSC Rules Analysis"
+        echo "This would use DSC-specific rules from PSScriptAnalyzer"
+        py-psscriptanalyzer scripts/ConfigurationIssues.ps1 --severity Warning || true
+        echo "::endgroup::"
+        
+        echo "::group::Compatibility Rules Analysis"
+        echo "This would use compatibility-specific rules from PSScriptAnalyzer"
+        py-psscriptanalyzer scripts/EdgeCases.ps1 --severity Warning || true
+        echo "::endgroup::"
+    
+    - name: Generate summary
+      run: |
+        echo "## PowerShell Code Analysis Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Files Analyzed" >> $GITHUB_STEP_SUMMARY
+        find . -name "*.ps1" -o -name "*.psm1" -o -name "*.psd1" | wc -l | xargs -I{} echo "- {} PowerShell files" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Rule Categories" >> $GITHUB_STEP_SUMMARY
+        echo "- Security Rules: Password handling, secure strings, hardcoded credentials" >> $GITHUB_STEP_SUMMARY
+        echo "- Style Rules: Formatting, indentation, whitespace" >> $GITHUB_STEP_SUMMARY
+        echo "- Performance Rules: Optimization opportunities" >> $GITHUB_STEP_SUMMARY
+        echo "- Best Practices: Approved verbs, parameter handling, error handling" >> $GITHUB_STEP_SUMMARY
+        echo "- DSC Rules: Desired State Configuration best practices" >> $GITHUB_STEP_SUMMARY
+        echo "- Compatibility Rules: Cross-platform compatibility" >> $GITHUB_STEP_SUMMARY

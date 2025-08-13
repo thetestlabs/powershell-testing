@@ -1,10 +1,10 @@
 # PowerShell Testing Repository
 
-This repository contains PowerShell scripts and modules with **intentional errors** designed to test the PSScriptAnalyzer pre-commit hook.
+This repository contains PowerShell scripts and modules with **intentional errors** designed to test the PSScriptAnalyzer pre-commit hook and showcase the capabilities of [py-psscriptanalyzer](https://github.com/thetestlabs/py-psscriptanalyzer), a Python wrapper for [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer).
 
 ## Purpose
 
-This repository serves as a comprehensive test suite for the [psscriptanalyzer-pre-commit](https://github.com/thetestlabs/psscriptanalyzer-pre-commit) hook, containing examples of various PSScriptAnalyzer rule violations.
+This repository serves as a comprehensive test suite for the `py-psscriptanalyzer` tool, containing examples of various PSScriptAnalyzer rule violations to demonstrate static analysis, formatting capabilities, and integration with CI/CD workflows.
 
 ## Structure
 

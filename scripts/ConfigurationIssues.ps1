@@ -1,6 +1,10 @@
-# Configuration and workflow with issues
+# ConfigurationIssues.ps1
+# This file demonstrates issues with DSC configurations and PowerShell workflows
+# Focused on PSDSCRule violations from py-psscriptanalyzer constants.py
 
-# PSAvoidUsingPlainTextForPassword in configuration
+# PSDSCDscExamplesPresent - Missing DSC examples
+# PSDSCDscTestsPresent - Missing DSC tests
+# Configuration missing proper documentation
 configuration BadWebServerConfig {
     param(
         [string]$ServerName,
@@ -11,18 +15,18 @@ configuration BadWebServerConfig {
     $unusedConfigVar = "This is never used"
     
     Node $ServerName {
-        # PSMissingModuleManifestField equivalent for DSC
+        # PSDSCUseVerboseMessageInDSCResource - Missing verbose messages
         WindowsFeature IIS {
             Ensure = "Present"
             Name = "IIS-WebServerRole"
         }
         
-        # PSUseShouldProcessForStateChangingFunctions in DSC context
+        # Missing DependsOn relationship
         File WebContent {
             DestinationPath = "C:\inetpub\wwwroot\index.html"
             Contents = "<html><body>Hello World</body></html>"
             Ensure = "Present"
-            # Missing DependsOn
+            # Missing DependsOn = "[WindowsFeature]IIS"
         }
         
         # PSAvoidUsingComputerNameHardcoded
@@ -32,59 +36,121 @@ configuration BadWebServerConfig {
             ValueData = "0"
             ValueType = "DWORD"
             Ensure = "Present"
-            # This is a hardcoded registry path
         }
     }
 }
 
-# Workflow with issues (if workflows are supported)
-workflow Test-BadWorkflow {
+# PSDSCStandardDSCFunctionsInResource - Missing standard DSC functions
+# Missing Get/Set/Test-TargetResource functions
+function MyCustomDSCResource {
     param(
-        [string[]]$ComputerNames
+        [string]$Name
     )
     
-    # PSAvoidUsingWriteHost in workflow
-    Write-Host "Starting workflow"
+    # Missing standard DSC functions
+    # Should have:
+    # - Get-TargetResource
+    # - Set-TargetResource
+    # - Test-TargetResource
+}
+
+# PSDSCReturnCorrectTypesForDSCFunctions - Incorrect return types
+function Get-TargetResource {
+    param(
+        [parameter(Mandatory = $true)]
+        [String]$Name
+    )
     
-    # PSUseDeclaredVarsMoreThanAssignments
-    $workflowVar = "Assigned but not used"
+    # Should return a hashtable but returns a string
+    return "Resource State"
+}
+
+# PSDSCUseIdenticalParametersForDSC - Inconsistent parameters
+function Get-TargetResourceParams {
+    param(
+        [parameter(Mandatory = $true)]
+        [String]$Name,
+        [String]$Path
+    )
     
-    foreach -parallel ($computer in $ComputerNames) {
-        # PSAvoidUsingInvokeExpression in workflow
-        $command = "Get-Service -ComputerName $computer"
-        InlineScript {
-            Invoke-Expression $using:command
-        }
-        
-        # PSAvoidUsingCmdletAliases in workflow
-        InlineScript {
-            ps | where {$_.ProcessName -like "w*"} | select Name, CPU
-        }
+    return @{
+        Name = $Name
+        Path = $Path
     }
+}
+
+function Set-TargetResourceParams {
+    param(
+        [parameter(Mandatory = $true)]
+        [String]$Name
+        # Missing [String]$Path parameter that's in Get-TargetResource
+    )
     
-    # PSAvoidUsingClearHost
+    # Implementation
+}
+
+# PSDSCUseIdenticalMandatoryParametersForDSC - Inconsistent mandatory parameters
+function Get-TargetResourceMandatory {
+    param(
+        [parameter(Mandatory = $true)]
+        [String]$Name,
+        [parameter(Mandatory = $true)]
+        [String]$Path
+    )
+    
+    return @{
+        Name = $Name
+        Path = $Path
+    }
+}
+
+function Set-TargetResourceMandatory {
+    param(
+        [parameter(Mandatory = $true)]
+        [String]$Name,
+        [parameter(Mandatory = $false)] # Should be Mandatory=$true to match Get function
+        [String]$Path
+    )
+    
+    # Implementation
+}
+    
+foreach -parallel ($computer in $ComputerNames) {
+    # PSAvoidUsingInvokeExpression in workflow
+    $command = "Get-Service -ComputerName $computer"
     InlineScript {
-        Clear-Host
+        Invoke-Expression $using:command
     }
+        
+    # PSAvoidUsingCmdletAliases in workflow
+    InlineScript {
+        ps | where { $_.ProcessName -like "w*" } | select Name, CPU
+    }
+}
+    
+# PSAvoidUsingClearHost
+InlineScript {
+    Clear-Host
+}
 }
 
 # Script with configuration data issues
 $ConfigurationData = @{
     AllNodes = @(
         @{
-            NodeName = "SERVER01"  # PSAvoidUsingComputerNameHardcoded
-            Role = "WebServer"
+            NodeName      = "SERVER01"  # PSAvoidUsingComputerNameHardcoded
+            Role          = "WebServer"
             
             # PSAvoidUsingPlainTextForPassword in configuration data
             AdminPassword = "AnotherPlainTextPassword"
             
             # PSUseSecureConnectionForWinRM - insecure settings
-            WinRMPort = 5985  # Should use 5986 for HTTPS
-            UseSSL = $false
+            WinRMPort     = 5985  # Should use 5986 for HTTPS
+            UseSSL        = $false
         },
         @{
-            NodeName = "SERVER02"
-            Role = "DatabaseServer"
+            NodeName        = "SERVER02"
+            Role            = "DatabaseServer"
             
             # Missing proper certificate thumbprint
             CertificateFile = "C:\cert.cer"  # Plain text certificate path
@@ -144,7 +210,7 @@ configuration BadSecurityConfig {
 # Invoke configurations with issues
 try {
     # PSAvoidUsingCmdletAliases
-    $servers = @("SERVER01", "SERVER02") | foreach {$_}
+    $servers = @("SERVER01", "SERVER02") | foreach { $_ }
     
     # PSMisleadingBacktick
     Start-BadConfiguration `
