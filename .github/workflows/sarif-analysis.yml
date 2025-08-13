@@ -46,7 +46,7 @@ jobs:
         find . -name "*.ps1" -o -name "*.psm1" -o -name "*.psd1" > ps_files.txt
         
         # Generate SARIF output
-        cat ps_files.txt | xargs py-psscriptanalyzer --severity Information --output sarif --output-file psscriptanalyzer-results.sarif
+        cat ps_files.txt | xargs py-psscriptanalyzer --severity Information --output-format sarif --output-file psscriptanalyzer-results.sarif
       
     - name: Upload SARIF to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v3

@@ -168,10 +168,10 @@ jobs:
     - name: Test individual hooks
       run: |
         # Test PSScriptAnalyzer hook only
-        pre-commit run --all-files psscriptanalyzer --verbose
+        pre-commit run --all-files py-psscriptanalyzer --verbose
         
         # Test formatter hook only
-        pre-commit run --all-files psscriptanalyzer-format --verbose
+        pre-commit run --all-files py-psscriptanalyzer-format --verbose
 
   report-compatibility:
     name: Compatibility Report
