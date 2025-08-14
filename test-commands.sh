@@ -68,10 +68,10 @@ run_command "py-psscriptanalyzer --format scripts/InformationIssues.ps1 --output
 # 4. Output Formats
 section "4. OUTPUT FORMATS"
 
-run_command "py-psscriptanalyzer --severity Warning scripts/SecurityIssues.ps1 --output json" \
+run_command "py-psscriptanalyzer --severity Warning scripts/SecurityIssues.ps1 --output-format json" \
     "Output results in JSON format"
 
-run_command "py-psscriptanalyzer --severity Warning scripts/SecurityIssues.ps1 --output sarif --output-file /tmp/security-issues.sarif" \
+run_command "py-psscriptanalyzer --severity Warning scripts/SecurityIssues.ps1 --output-format sarif --output-file /tmp/security-issues.sarif" \
     "Output results in SARIF format for integration with code scanning tools"
 
 # 5. Recursive Analysis
@@ -123,7 +123,7 @@ section "10. ENVIRONMENT VARIABLES"
 run_command "echo 'Setting SEVERITY_LEVEL environment variable:' && export SEVERITY_LEVEL=Error && py-psscriptanalyzer scripts/SecurityIssues.ps1 && unset SEVERITY_LEVEL" \
     "Using SEVERITY_LEVEL environment variable to set severity"
 
-# 11. Rule Categories 
+# 11. Rule Categories
 section "11. RULE CATEGORIES"
 
 run_command "py-psscriptanalyzer --recursive --security-only" \
